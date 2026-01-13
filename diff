@@ -1,0 +1,48 @@
+index.html
+<!DOCTYPE html>
+<html>
+<head>
+<title>Brahvix Space</title>
+<meta charset="UTF-8">
+<style>
+body {
+  margin:0;
+  background:linear-gradient(to right,#020111,#000428);
+  color:white;
+  font-family:Arial, sans-serif;
+  text-align:center;
+  padding:60px;
+}
+h1 {font-size:50px;color:#00ccff;}
+p {font-size:20px;max-width:700px;margin:auto;}
+.btn {
+  background:#00ccff;
+  color:black;
+  padding:14px 30px;
+  border:none;
+  font-size:18px;
+  cursor:pointer;
+  border-radius:6px;
+}
+footer {
+  margin-top:80px;
+  font-size:14px;
+  opacity:0.7;
+}
+</style>
+</head>
+
+<body>
+<h1>Brahvix Space</h1>
+<p>Assam’s first space technology startup.  
+We are building satellite and space engineering solutions for India and the world.</p>
+
+<br><br>
+<button class="btn">Launch Coming Soon</button>
+
+<footer>
+<p>Contact: brahvix@gmail.com</p>
+<p>© 2026 Brahvix Space</p>
+</footer>
+</body>
+</html>
