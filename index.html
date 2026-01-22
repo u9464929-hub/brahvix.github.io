@@ -6,11 +6,14 @@
 <style>
 body {
   margin:0;
-  background:linear-gradient(to right,#020111,#000428);
+  background: linear-gradient(rgba(2, 1, 17, 0.8), rgba(0, 4, 40, 0.8)), url('background.jpg');
+  background-size: cover;
+  background-position: center;
   color:white;
   font-family:Arial, sans-serif;
   text-align:center;
   padding:60px;
+  overflow-x: hidden;
 }
 h1 {font-size:50px;color:#00ccff;}
 p {font-size:20px;max-width:700px;margin:auto;}
@@ -28,6 +31,28 @@ footer {
   font-size:14px;
   opacity:0.7;
 }
+/* Star Animation */
+.star {
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+  animation: twinkle infinite ease-in-out;
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+/* Asteroid Animation */
+.asteroid {
+  position: fixed;
+  background: radial-gradient(circle at 30% 30%, #888888, #222222);
+  z-index: 0;
+}
+/* Ensure content is above stars */
+h1, p, .btn, footer {
+  position: relative;
+  z-index: 1;
+}
 </style>
 </head>
 
@@ -43,5 +68,139 @@ We are building satellite and space engineering solutions for India and the worl
 <p>Contact: brahvix@gmail.com</p>
 <p>© 2026 Brahvix Space</p>
 </footer>
+
+<script>
+  const starContainer = document.createElement('div');
+  starContainer.style.position = 'fixed';
+  starContainer.style.top = '0';
+  starContainer.style.left = '0';
+  starContainer.style.width = '100%';
+  starContainer.style.height = '100%';
+  starContainer.style.zIndex = '0';
+  starContainer.style.pointerEvents = 'none';
+  document.body.appendChild(starContainer);
+
+  for(let i=0; i<100; i++){
+    const star = document.createElement('div');
+    star.className = 'star';
+    star.style.left = Math.random() * 100 + '%';
+    star.style.top = Math.random() * 100 + '%';
+    const size = Math.random() * 2 + 1;
+    star.style.width = size + 'px';
+    star.style.height = size + 'px';
+    star.style.animationDuration = (Math.random() * 2 + 1) + 's';
+    star.style.animationDelay = Math.random() * 2 + 's';
+    starContainer.appendChild(star);
+  }
+  
+  const asteroids = [];
+
+  function createAsteroid() {
+    if (asteroids.length >= 6) return;
+    const asteroid = document.createElement('div');
+    asteroid.className = 'asteroid';
+    
+    // Random size
+    const size = 30 + Math.random() * 40;
+    asteroid.style.width = size + 'px';
+    asteroid.style.height = size + 'px';
+    asteroid.style.left = '0px';
+    asteroid.style.top = '0px';
+    
+    // Random organic shape
+    const r = () => 40 + Math.random() * 20;
+    asteroid.style.borderRadius = `${r()}% ${r()}% ${r()}% ${r()}% / ${r()}% ${r()}% ${r()}% ${r()}%`;
+
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    const side = Math.floor(Math.random() * 4);
+    let startX, startY, endX, endY;
+    const offset = size + 10;
+
+    if (side === 0) { startX = Math.random() * w; startY = -offset; endX = Math.random() * w; endY = h + offset; }
+    else if (side === 1) { startX = w + offset; startY = Math.random() * h; endX = -offset; endY = Math.random() * h; }
+    else if (side === 2) { startX = Math.random() * w; startY = h + offset; endX = Math.random() * w; endY = -offset; }
+    else { startX = -offset; startY = Math.random() * h; endX = w + offset; endY = Math.random() * h; }
+
+    // Calculate velocity
+    const angle = Math.atan2(endY - startY, endX - startX);
+    const speed = 1 + Math.random() * 2;
+    
+    document.body.appendChild(asteroid);
+
+    asteroids.push({
+      element: asteroid,
+      x: startX,
+      y: startY,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      radius: size / 2,
+      mass: size * size,
+      rotation: 0,
+      rotSpeed: (Math.random() - 0.5) * 5
+    });
+  }
+  
+  function updateAsteroids() {
+    for (let i = 0; i < asteroids.length; i++) {
+      const a = asteroids[i];
+      a.x += a.vx;
+      a.y += a.vy;
+      a.rotation += a.rotSpeed;
+      a.element.style.transform = `translate(${a.x}px, ${a.y}px) rotate(${a.rotation}deg)`;
+    }
+
+    // Collision Physics
+    for (let i = 0; i < asteroids.length; i++) {
+      for (let j = i + 1; j < asteroids.length; j++) {
+        const a1 = asteroids[i];
+        const a2 = asteroids[j];
+        const dx = a2.x - a1.x;
+        const dy = a2.y - a1.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        
+        if (dist < a1.radius + a2.radius) {
+          const nx = dx / dist;
+          const ny = dy / dist;
+          const overlap = (a1.radius + a2.radius - dist) / 2;
+          a1.x -= nx * overlap; a1.y -= ny * overlap;
+          a2.x += nx * overlap; a2.y += ny * overlap;
+          
+          const v1n = a1.vx * nx + a1.vy * ny;
+          const v2n = a2.vx * nx + a2.vy * ny;
+          
+          const m1 = a1.mass;
+          const m2 = a2.mass;
+          
+          const v1nFinal = (v1n * (m1 - m2) + 2 * m2 * v2n) / (m1 + m2);
+          const v2nFinal = (v2n * (m2 - m1) + 2 * m1 * v1n) / (m1 + m2);
+          
+          const tx = -ny;
+          const ty = nx;
+          const v1t = a1.vx * tx + a1.vy * ty;
+          const v2t = a2.vx * tx + a2.vy * ty;
+          
+          a1.vx = v1nFinal * nx + v1t * tx;
+          a1.vy = v1nFinal * ny + v1t * ty;
+          a2.vx = v2nFinal * nx + v2t * tx;
+          a2.vy = v2nFinal * ny + v2t * ty;
+        }
+      }
+    }
+
+    // Cleanup
+    for (let i = asteroids.length - 1; i >= 0; i--) {
+      const a = asteroids[i];
+      if (a.x < -200 || a.x > window.innerWidth + 200 || a.y < -200 || a.y > window.innerHeight + 200) {
+        a.element.remove();
+        asteroids.splice(i, 1);
+      }
+    }
+    requestAnimationFrame(updateAsteroids);
+  }
+
+  setInterval(createAsteroid, 2000);
+  updateAsteroids();
+</script>
 </body>
 </html>
